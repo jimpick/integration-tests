@@ -4,7 +4,7 @@ var {h1, h2} = test.topologies.basic()
 
 test('share a dat between two nodes', function (t) {
   t.run(h1, function () {
-    var Dat = require('dat-node')
+    var Dat = require('@jimpick/dat-node')
     var tempy = require('tempy')
 
     var dir = tempy.directory()
@@ -40,7 +40,7 @@ test('share a dat between two nodes', function (t) {
   })
 
   t.run(h2, function () {
-    var Dat = require('dat-node')
+    var Dat = require('@jimpick/dat-node')
     var path = require('path')
     var fixture = path.join(__dirname, '../../fixtures/dat1')
 
