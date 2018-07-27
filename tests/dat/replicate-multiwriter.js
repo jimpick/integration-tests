@@ -2,10 +2,10 @@ var test = require('tapenet')
 
 var {h1, h2} = test.topologies.basic()
 
-test('share a dat (uniwriter) between two nodes', function (t) {
+test('share a dat (multiwriter) between two nodes', function (t) {
   t.run(h1, function () {
     var path = require('path')
-    var Dat = require('@jimpick/dat-node')
+    var Dat = require('@jimpick/dat-node-hyperdb-only')
     var tempy = require('tempy')
     var helpers = require(path.resolve(__dirname, './helpers'))
 
@@ -26,25 +26,24 @@ test('share a dat (uniwriter) between two nodes', function (t) {
         t.pass('h1 downloading dat://' + key)
 
         var archive = dat.archive
-        if (archive.content) contentReady()
-        archive.once('content', contentReady)
 
-        function contentReady () {
-          t.pass('h1 content ready')
-          archive.content.on('sync', function () {
-            t.pass('h1 dat synced')
-            helpers.verifyFixtures(t, archive, function (err) {
-              t.error(err, 'error')
-              t.end()
-            })
-          })
-        }
+        archive.ready(() => {
+          // archive.db.source.on('sync', function () {
+            setTimeout(() => {
+              t.pass('h1 dat synced')
+              helpers.verifyFixtures(t, archive, function (err) {
+                t.error(err, 'error')
+                t.end()
+              })
+            }, 1000)
+          // })
+        })
       })
     })
   })
 
   t.run(h2, function () {
-    var Dat = require('@jimpick/dat-node')
+    var Dat = require('@jimpick/dat-node-hyperdb-only')
     var path = require('path')
     var fixture = path.join(__dirname, '../../fixtures/dat1')
 
