@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/datprotocol/integration-tests#readme",
   "dependencies": {
-    "@jimpick/dat-node": "^3.5.11-1",
+    "@jimpick/dat-node": "^3.5.11-2",
     "@jimpick/dat-node-hyperdb-only": "^3.5.8-1",
     "dns-discovery": "^6.1.0",
     "multicast-dns": "^7.0.0",
