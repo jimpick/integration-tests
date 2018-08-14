@@ -2,55 +2,53 @@ var test = require('tapenet')
 
 var {h1, h2} = test.topologies.basic()
 
-test('share a dat (legacy) between two nodes', function (t) {
+test('share a new-style dat between two nodes (dat-node-hyperdb-only)', function (t) {
   t.run(h1, function () {
     var path = require('path')
-    var Dat = require('@jimpick/dat-node')
+    var Dat = require('@jimpick/dat-node-hyperdb-only')
     var tempy = require('tempy')
     var helpers = require(path.resolve(__dirname, './helpers'))
 
     var dir = tempy.directory()
 
     h2.on('sharing', ({key}) => {
-      Dat(dir, {legacy: true, key: key, temp: true}, function (err, dat) {
+      Dat(dir, {key: key, temp: true}, function (err, dat) {
         if (err) throw err
         // dat.joinNetwork()
 
         var network = dat.joinNetwork(function (err) {
           t.error(err && err.toString(), 'h1 joinNetwork calls back okay')
         })
-        network.once('connection', function () {
+        network.once('connection', function (peer, info) {
           t.pass('h1 got connection')
+          // console.log('jim info', info)
         })
 
         t.pass('h1 downloading dat://' + key)
 
         var archive = dat.archive
-        if (archive.content) contentReady()
-        archive.once('content', contentReady)
 
-        function contentReady () {
-          t.pass('h1 content ready')
-          archive.content.once('sync', function () {
-            setTimeout(() => { // FIXME: Shouldn't be necessary
+        archive.ready(() => {
+          // archive.db.source.on('sync', function () {
+            setTimeout(() => {
               t.pass('h1 dat synced')
               helpers.verifyFixtures(t, archive, function (err) {
                 t.error(err, 'error')
                 t.end()
               })
-            }, 100)
-          })
-        }
+            }, 1000)
+          // })
+        })
       })
     })
   })
 
   t.run(h2, function () {
-    var Dat = require('@jimpick/dat-node')
+    var Dat = require('@jimpick/dat-node-hyperdb-only')
     var path = require('path')
     var fixture = path.join(__dirname, '../../fixtures/dat1')
 
-    Dat(fixture, {legacy: true, temp: true}, function (err, dat) {
+    Dat(fixture, {temp: true}, function (err, dat) {
       if (err) throw err
       dat.importFiles()
 
@@ -62,7 +60,9 @@ test('share a dat (legacy) between two nodes', function (t) {
       })
 
       t.pass('h2 sharing dat://' + dat.key.toString('hex'))
-      h2.emit('sharing', {key: dat.key.toString('hex')})
+      setTimeout(() => {
+        h2.emit('sharing', {key: dat.key.toString('hex')})
+      }, 1000)
     })
   })
 })

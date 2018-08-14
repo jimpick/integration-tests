@@ -2,10 +2,10 @@ var test = require('tapenet')
 
 var {h1, h2} = test.topologies.basic()
 
-test('share a dat between two nodes', function (t) {
+test('share an old-style dat between two nodes (dat-node staging)', function (t) {
   t.run(h1, function () {
     var path = require('path')
-    var Dat = require('@jimpick/dat-node-hyperdb-only')
+    var Dat = require('@jimpick/dat-node')
     var tempy = require('tempy')
     var helpers = require(path.resolve(__dirname, './helpers'))
 
@@ -26,24 +26,27 @@ test('share a dat between two nodes', function (t) {
         t.pass('h1 downloading dat://' + key)
 
         var archive = dat.archive
+        if (archive.content) contentReady()
+        archive.once('content', contentReady)
 
-        archive.ready(() => {
-          // archive.db.source.on('sync', function () {
-            setTimeout(() => {
+        function contentReady () {
+          t.pass('h1 content ready')
+          archive.content.once('sync', function () {
+            setTimeout(() => { // FIXME: Shouldn't be necessary
               t.pass('h1 dat synced')
               helpers.verifyFixtures(t, archive, function (err) {
                 t.error(err, 'error')
                 t.end()
               })
-            }, 1000)
-          // })
-        })
+            }, 100)
+          })
+        }
       })
     })
   })
 
   t.run(h2, function () {
-    var Dat = require('@jimpick/dat-node-hyperdb-only')
+    var Dat = require('@jimpick/dat-node')
     var path = require('path')
     var fixture = path.join(__dirname, '../../fixtures/dat1')
 
