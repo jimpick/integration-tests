@@ -31,12 +31,14 @@ test('share a dat (legacy) between two nodes', function (t) {
 
         function contentReady () {
           t.pass('h1 content ready')
-          archive.content.on('sync', function () {
-            t.pass('h1 dat synced')
-            helpers.verifyFixtures(t, archive, function (err) {
-              t.error(err, 'error')
-              t.end()
-            })
+          archive.content.once('sync', function () {
+            setTimeout(() => { // FIXME: Shouldn't be necessary
+              t.pass('h1 dat synced')
+              helpers.verifyFixtures(t, archive, function (err) {
+                t.error(err, 'error')
+                t.end()
+              })
+            }, 100)
           })
         }
       })
